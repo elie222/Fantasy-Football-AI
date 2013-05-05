@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import json
+import glob
 
 # TODO change this
 TABLE_FILENAME = 'TEST_TABLE.html'
@@ -48,8 +49,10 @@ class PlayerScoreEstimator:
     def __init__(self, tableFilename=TABLE_FILENAME):
         self.createTable(tableFilename)
 
-    def estimateScore(self,player,opponentName,location):
-        # opponentTeam = self.table[player['team_name']]
+    def estimateScore(self,player,fixture):
+        opponentName = fixture['opponent']
+        location = fixture['location']
+
         opponentTeam = self.table[opponentName]
         oppAttStrength = 0
         oppDefStrength = 0
@@ -68,6 +71,16 @@ class PlayerScoreEstimator:
 
         return self.calcMiscPPG(player)+(locAdv*((self.calcDefPPG(player)/oppAttStrength)+(self.calcAttPPG(player)*oppDefStrength)))
 
+    def estimateScoreMultipleGames(self,player,fixtureList,discount=1):
+        estScore = 0
+
+        futureFixture = None
+        for fixture in fixtureList:
+            futureFixture = FutureFixture(fixture)
+            estScore += self.estimateScore(player, futureFixture)
+
+        return estScore
+
     def calcDefPPG(self,player):
         gamesPlayed = 0
         points = 0
@@ -84,7 +97,7 @@ class PlayerScoreEstimator:
 
         fixture = None
         for fixtureArray in player['fixture_history']['all']:
-            fixture = Fixture(fixtureArray)
+            fixture = PastFixture(fixtureArray)
             if fixture['minsPlayed'] == 0:
                 continue
             gamesPlayed += 1
@@ -115,7 +128,7 @@ class PlayerScoreEstimator:
 
         fixture = None
         for fixtureArray in player['fixture_history']['all']:
-            fixture = Fixture(fixtureArray)
+            fixture = PastFixture(fixtureArray)
             if fixture['minsPlayed'] == 0:
                 continue
             gamesPlayed += 1
@@ -134,7 +147,7 @@ class PlayerScoreEstimator:
 
         fixture = None
         for fixtureArray in player['fixture_history']['all']:
-            fixture = Fixture(fixtureArray)
+            fixture = PastFixture(fixtureArray)
             if fixture['minsPlayed'] == 0:
                 continue
             gamesPlayed += 1
@@ -198,7 +211,7 @@ class Table:
 
 class Team:
     def __init__(self, teamData):
-        self.teamName = teamData[0]
+        self.teamName = teamNames[teamData[0]]
         self.data = {}
 
         self.data['homePlayed'] = int(teamData[1])
@@ -240,7 +253,7 @@ class Player:
     def __setitem__(self,key,item):
         self.data[key] = item
 
-class Fixture:
+class PastFixture:
     def __init__(self, array):
         self.data = {}
 
@@ -283,14 +296,65 @@ class Fixture:
 
         return opp, loc, homeGoals, awayGoals
 
+class FutureFixture:
+    def __init__(self, array):
+        self.data = {}
+
+        self.data['date'] = array[0]
+        self.data['gameweek'] = self.parseGameweek(array[1])
+        opp, loc = self.parseOppLoc(array[2])
+        self.data['opponent'] = opp
+        self.data['location'] = loc
+
+    def __getitem__(self,key):
+        return self.data[key]
+
+    def __setitem__(self,key,item):
+        self.data[key] = item
+
+    def parseOppLoc(self, string):
+        '''
+        Example:
+        Input: 'West Brom (H)'
+        Output: ['West Brom', 'H']
+        '''
+        splitString = string.split(' (')
+        opp = splitString[0]
+        loc = splitString[1][0]
+
+        return opp, loc
+
+    def parseGameweek(self, string):
+        '''
+        Example:
+        Input: 'Gameweek 31'
+        Output: 31
+        '''
+        return int(string.split(' ')[1])
 
 def main():
-    estimator = PlayerScoreEstimator(tableFilename=TABLE_FILENAME)
-    player = Player(TEST_PLAYER_FILENAME)
-    # score = estimator.estimateScore(player,'Queens Park Rangers','H')
+    folder = '3_5_2013'
+    tableFilename = 'tableHomeAndAway.html'
+    playerFilenames = glob.glob(folder + '/*')
+    playerFilenames.remove(folder + '/' + tableFilename)
 
-    for teamName in teamNames:
-        print teamName, estimator.estimateScore(player,teamName,'A')
+    playerScoreDict = {}
+
+    estimator = PlayerScoreEstimator(tableFilename=folder+'/'+tableFilename)
+
+    for playerFilename in playerFilenames:
+        try:
+            player = Player(playerFilename)
+            score = estimator.estimateScoreMultipleGames(player,player['fixtures']['all'])
+            playerScoreDict[player['web_name']] = score
+        except:
+            print playerFilename
+
+    import operator
+    sortedPlayerScoreList = sorted(playerScoreDict.iteritems(), key=operator.itemgetter(1))
+
+    for tup in sortedPlayerScoreList:
+        print tup[0], tup[1]
 
 if __name__ == '__main__':
     main()
