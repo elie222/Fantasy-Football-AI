@@ -1,6 +1,7 @@
 class FPLAgent:
-	def __init__(self):
-		self.x = 0
+	def __init__(self, funds):
+		self.funds = funds
+		self.team = self.chooseTeam(funds)
 
-	def chooseTeam(self):
+	def chooseTeam(self, funds):
 		return 0
