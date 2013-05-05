@@ -1,0 +1,182 @@
+[
+  {
+    "model": "pl_table.team",
+    "pk": 1,
+    "fields": {
+      "name": "Manchester United",
+      "abbreviation": "MUN",
+      "short_name": "Man Utd"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 2,
+    "fields": {
+      "name": "Manchester City",
+      "abbreviation": "MCI",
+      "short_name": "Man City"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 3,
+    "fields": {
+      "name": "Chelsea",
+      "abbreviation": "CHE",
+      "short_name": "Chelsea"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 4,
+    "fields": {
+      "name": "Tottenham Hotspur",
+      "abbreviation": "TOT",
+      "short_name": "Tottenham"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 5,
+    "fields": {
+      "name": "Arsenal",
+      "abbreviation": "ARS",
+      "short_name": "Arsenal"
+    }
+  },
+   {
+    "model": "pl_table.team",
+    "pk": 6,
+    "fields": {
+      "name": "Everton",
+      "abbreviation": "EVE",
+      "short_name": "Everton"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 7,
+    "fields": {
+      "name": "Liverpool",
+      "abbreviation": "LIV",
+      "short_name": "Liverpool"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 8,
+    "fields": {
+      "name": "West Bromwich Albion",
+      "abbreviation": "WBA",
+      "short_name": "West Brom"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 9,
+    "fields": {
+      "name": "Swansea City",
+      "abbreviation": "SWA",
+      "short_name": "Swansea"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 10,
+    "fields": {
+      "name": "Fulham",
+      "abbreviation": "FUL",
+      "short_name": "Fulham"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 11,
+    "fields": {
+      "name": "Stoke City",
+      "abbreviation": "STO",
+      "short_name": "Stoke City"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 12,
+    "fields": {
+      "name": "Norwich City",
+      "abbreviation": "NOR",
+      "short_name": "Norwich"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 13,
+    "fields": {
+      "name": "Newcastle United",
+      "abbreviation": "NEW",
+      "short_name": "Newcastle"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 14,
+    "fields": {
+      "name": "West Ham United",
+      "abbreviation": "WHU",
+      "short_name": "West Ham"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 15,
+    "fields": {
+      "name": "Sunderland",
+      "abbreviation": "SUN",
+      "short_name": "Sunderland"
+    }
+  },
+   {
+    "model": "pl_table.team",
+    "pk": 16,
+    "fields": {
+      "name": "Southampton",
+      "abbreviation": "SOU",
+      "short_name": "Southampton"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 17,
+    "fields": {
+      "name": "Aston Villa",
+      "abbreviation": "AVL",
+      "short_name": "Aston Villa"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 18,
+    "fields": {
+      "name": "Wigan Athletic",
+      "abbreviation": "WIG",
+      "short_name": "Wigan"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 19,
+    "fields": {
+      "name": "Reading",
+      "abbreviation": "RDG",
+      "short_name": "Reading"
+    }
+  },
+  {
+    "model": "pl_table.team",
+    "pk": 20,
+    "fields": {
+      "name": "Queens Park Rangers",
+      "abbreviation": "QPR",
+      "short_name": "QPR"
+    }
+  }
+]

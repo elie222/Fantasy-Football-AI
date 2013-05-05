@@ -1,0 +1,52 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf510
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+
+\f0\fs24 \cf0 fantasy football database\
+\
+\
+mysql> show tables;\
++--------------------------------+\
+| Tables_in_fpl                  |\
++--------------------------------+\
+| club                           |\
+| club_name_map                  |\
+| competition                    |\
+| fantasy_gameweek               |\
+| fantasy_gameweek_match         |\
+| fantasy_manager                |\
+| fantasy_player_cost_change     |\
+| fantasy_player_mapping         |\
+| fantasy_player_position_change |\
+| fantasy_season                 |\
+| fantasy_selection_rules        |\
+| fantasy_squad                  |\
+| fantasy_squad_selection        |\
+| fantasy_vendor                 |\
+| fantasy_vendor_update_history  |\
+| match_appearance               |\
+| match_goal                     |\
+| match_overview                 |\
+| match_side                     |\
+| player                         |\
+| player_absence                 |\
+| player_name_map                |\
+| player_performance             |\
+| player_transfer                |\
++--------------------------------+\
+\
+\
+\
+mysql> show columns from fantasy_player_mapping;\
++--------------------------+---------+------+-----+---------+----------------+\
+| Field                    | Type    | Null | Key | Default | Extra          |\
++--------------------------+---------+------+-----+---------+----------------+\
+| idfantasy_player_mapping | int(11) | NO   | PRI | NULL    | auto_increment |\
+| season_id                | int(11) | NO   | MUL | NULL    |                |\
+| vendor_player_id         | int(11) | NO   |     | NULL    |                |\
+| player_id                | int(11) | NO   | MUL | NULL    |                |\
++--------------------------+---------+------+-----+---------+----------------+\
+\
+}

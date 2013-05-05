@@ -1,0 +1,46 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf510
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+
+\f0\fs24 \cf0 To run MySQL as root:\
+\
+1) Enter this into the shell:\
+/usr/local/mysql/bin/mysql -uroot -p\
+2) Press enter when asked for the password (password is empty).\
+\
+show databases;\
+use <name of db>\
+show tables;\
+show columns from <table name>;\
+\
+\\. db.sql loads the db. But it's already loaded in and called fpl, so you don't need to do that again.\
+\
+Tutorial for MySQL is here:\
+{\field{\*\fldinst{HYPERLINK "http://dev.mysql.com/doc/refman/5.0/en/tutorial.html"}}{\fldrslt http://dev.mysql.com/doc/refman/5.0/en/tutorial.html}}\
+\
+\
+\
+\ul Creating a new DB:\ulnone \
+CREATE \{DATABASE | SCHEMA\} [IF NOT EXISTS] db_name\
+    [create_specification] ...\
+\
+create_specification:\
+    [DEFAULT] CHARACTER SET [=] charset_name\
+  | [DEFAULT] COLLATE [=] collation_name\
+\
+\ul Update a table entry:\
+\ulnone UPDATE [LOW_PRIORITY] [IGNORE] table_reference\
+    SET col_name1=\{expr1|DEFAULT\} [, col_name2=\{expr2|DEFAULT\}] ...\
+    [WHERE where_condition]\
+    [ORDER BY ...]\
+    [LIMIT row_count]\
+\
+eg. update pl_table_team set short_name = 'Stoke City' where id = 11;\
+\
+\ul Delete a table entry:\ulnone \
+DELETE [LOW_PRIORITY] [QUICK] [IGNORE] FROM tbl_name\
+    [WHERE where_condition]\
+    [ORDER BY ...]\
+    [LIMIT row_count]}
