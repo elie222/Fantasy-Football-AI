@@ -46,10 +46,13 @@ teamNames['Queens Park Rangers'] = 'QPR'
 
 
 class PlayerScoreEstimator:
-    def __init__(self, tableFilename=TABLE_FILENAME):
+    def __init__(self, tableFilename):
         self.createTable(tableFilename)
 
     def estimateScore(self,player,fixture):
+        if fixture['opponent'] is None:
+            return 0
+
         opponentName = fixture['opponent']
         location = fixture['location']
 
@@ -318,6 +321,9 @@ class FutureFixture:
         Input: 'West Brom (H)'
         Output: ['West Brom', 'H']
         '''
+        if string == '-':
+            return None, None
+
         splitString = string.split(' (')
         opp = splitString[0]
         loc = splitString[1][0]
@@ -333,7 +339,7 @@ class FutureFixture:
         return int(string.split(' ')[1])
 
 def main():
-    folder = '3_5_2013'
+    folder = '26_3_2013'
     tableFilename = 'tableHomeAndAway.html'
     playerFilenames = glob.glob(folder + '/*')
     playerFilenames.remove(folder + '/' + tableFilename)
@@ -348,7 +354,8 @@ def main():
             score = estimator.estimateScoreMultipleGames(player,player['fixtures']['all'])
             playerScoreDict[player['web_name']] = score
         except:
-            print playerFilename
+            pass
+            # print 'ERROR FOR:', playerFilename
 
     import operator
     sortedPlayerScoreList = sorted(playerScoreDict.iteritems(), key=operator.itemgetter(1))
