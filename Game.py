@@ -35,7 +35,7 @@ class Game:
 	def getGameweekScore(self, gameweekNo, team):
 		'''
 		gameweekNo - an integer between 1 and 38
-		team - a list of Player objects. TODO. change this to a Team object
+		team - a Team object
 		Returns the score for team in the given gameweek.
 		'''
 		score = 0
