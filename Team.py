@@ -16,7 +16,7 @@ class Team(object):
 		self.mids = []
 		self.atts = []
 
-		if isFormationValid(formation):
+		if self.isFormationValid(formation):
 			self.formation = formation
 		else:
 			raise
