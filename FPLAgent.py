@@ -1,19 +1,21 @@
 import PlayerScoreEstimator
 
-class FPLAgent:
-	def __init__(self, playersFolder, tablePath, funds):
-		self.playersFolder = playersFolder
-		self.funds = funds
-		self.team = None
-		self.estimator = PlayerScoreEstimator(tablePath)
+class FPLAgent(object):
+	# def __init__(self, playersFolder, tablePath):
+	# 	self.playersFolder = playersFolder
+	# 	self.team = None
+	# 	self.estimator = PlayerScoreEstimator(tablePath)
 
-	def chooseTeam(self):
-		return 0
+	def chooseTeam(self, allPlayers, currentTable, previousTeam, freeTransfers, moneyAvailable):
+
+		if previousTeam is None:
+			# pick completely new team
+			self.team = Team([], formation=[3,4,3], captain=None, viceCaptain=None)
+		else:
+			# improve old team
 
 def main():
-	agent = FPLAgent('26_3_2013', '26_3_2013/tableHomeAndAway', 100)
-	agent.chooseTeam()
-	return 0
+	pass
 
 if __name__ == '__main__':
 	main()

@@ -10,7 +10,7 @@ MID_TYPE_NAME = 'Midfielder'
 ATT_TYPE_NAME = 'Forward'
 
 class Team(object):
-	def __init__(self, playerList, formation='343', captain=None, viceCaptain=None):
+	def __init__(self, playerList, formation=[3,4,3], captain=None, viceCaptain=None):
 		self.gks = []
 		self.defs = []
 		self.mids = []
@@ -91,9 +91,9 @@ class Team(object):
 			raise
 
 	def isFormationValid(self, formation):
-		nDefs = int(formation[0])
-		nMids = int(formation[1])
-		nAtts = int(formation[2])
+		nDefs = formation[0]
+		nMids = formation[1]
+		nAtts = formation[2]
 
 		if not nDefs + nMids + nAtts == 10:
 			return False
@@ -102,5 +102,19 @@ class Team(object):
 			return True
 		else:
 			return False
+
+	def getPlayerIdsList(self):
+		idsList = []
+
+		for player in self.gks:
+			idsList.append(player['id'])
+		for player in self.defs:
+			idsList.append(player['id'])
+		for player in self.mids:
+			idsList.append(player['id'])
+		for player in self.atts:
+			idsList.append(player['id'])
+
+		return idsList
 
 
