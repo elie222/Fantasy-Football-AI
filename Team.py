@@ -11,6 +11,9 @@ ATT_TYPE_NAME = 'Forward'
 
 class Team(object):
 	def __init__(self, playerList, formation=[3,4,3], captain=None, viceCaptain=None):
+		'''
+		Possibly don't throw exceptions when only half a team has been chosen. Let the agent deal with that itself.
+		'''
 		self.gks = []
 		self.defs = []
 		self.mids = []
@@ -19,7 +22,7 @@ class Team(object):
 		if self.isFormationValid(formation):
 			self.formation = formation
 		else:
-			raise
+			raise Exception('Invalid formation.')
 
 		gkCount = 0
 		defCount = 0
@@ -27,7 +30,8 @@ class Team(object):
 		attCount = 0
 
 		if not len(playerList) == NO_OF_PLAYERS:
-			raise
+			raise  Exception('Team does not have exactly %d players.'%(NO_OF_PLAYERS))
+
 		for player in playerList:
 			if player['type_name'] == GK_TYPE_NAME:
 				gkCount += 1
@@ -42,17 +46,23 @@ class Team(object):
 				attCount += 1
 				self.atts.append(player)
 			else:
-				raise
+				raise Exception('Invalid position.')
 
 		if not gkCount == NO_OF_GKS:
-			raise
+			raise Exception('Too many keepers.')
 		if not defCount == NO_OF_DEFS:
-			raise
+			raise Exception('Too many defenders.')
 		if not midCount == NO_OF_MIDS:
-			raise
+			raise Exception('Too many midfielders.')
 		if not attCount == NO_OF_ATTS:
-			raise
+			raise Exception('Too many attackers.')
 
+		# value
+		self.value = 0
+		for player in playerList:
+			self.value += player['now_cost']
+
+		# captain/vc
 		if captain is not None:
 			self.captain = captain
 		else:
@@ -69,7 +79,7 @@ class Team(object):
 		don't play in the same position.
 		'''
 		if not playerOut['type_name'] == playerIn['type_name']:
-			raise
+			raise Exception('Transfer failed. Tried to switch a player for a player in another position.')
 
 		if playerOut['type_name'] == GK_TYPE_NAME:
 			i = self.gks.index(playerOut)
@@ -88,7 +98,9 @@ class Team(object):
 			self.atts.remove(playerOut)
 			self.atts.insert(playerIn, i)
 		else:
-			raise
+			raise Exception('Transfer failed. Tried to transfer out a player that was not in the team.')
+
+		self.value = playerOut['now_cost'] - playerIn['now_cost']
 
 	def isFormationValid(self, formation):
 		nDefs = formation[0]

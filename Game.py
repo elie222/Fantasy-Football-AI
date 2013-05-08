@@ -5,6 +5,8 @@ This class enables simulating a season of FPL.
 from bs4 import BeautifulSoup
 import FPLAgent
 import PlayerScoreEstimator
+import Table
+import Player
 
 POINTS_COST_PER_TRANSFER = 4
 MAX_FREE_TRANSFERS_SAVED = 2
@@ -14,12 +16,16 @@ class Game:
 	def __init__(self, fixturesFolder, playersFolder, agent, moneyAvailable=STARTING_MONEY):
 		self.fixturesFolder = fixturesFolder
 		self.playersFolder = playersFolder
+		
+		self.currentTable = Table() # TODO
+		self.currentAllPlayers = {} # TODO
+
 		self.agent = agent
 
 		self.score = 0
 		self.gameweek = 0
 		self.freeTransfers = 0
-		self.wildCards = 2
+		self.wildCards = 2 # change this
 		self.moneyAvailable = moneyAvailable
 
 		self.currentTeam = None
@@ -31,7 +37,11 @@ class Game:
 			self.freeTransfers += 1
 
 		self.previousTeam = self.currentTeam
-		self.currentTeam = self.agent.chooseTeam(self.previousTeam, self.freeTransfers, self.moneyAvailable, self.wildCards)
+		self.currentTeam = chooseTeam(self.currentAllPlayers, self.currentTable, self.previousTeam, self.moneyAvailable, self.freeTransfers, self.wildCards)
+
+		self.moneyAvailable += (self.previousTeam.value - self.currentTeam.value)
+		if self.moneyAvailable < 0:
+			raise Exception('Money available has dropped below 0.')
 
 		noOfTransfers = self.findNoOfTransfers()
 		if noOfTransfers < self.freeTransfers:
@@ -41,8 +51,6 @@ class Game:
 			score -= (POINTS_COST_PER_TRANSFER*(noOfTransfers-self.freeTransfers))
 
 		score += self.getGameweekScore(gameweekNo, self.currentTeam)
-
-		# TODO - update self.moneyAvailable
 
 	def getGameweekData(self, gameweekNo):
 		'''
@@ -118,6 +126,10 @@ class Game:
 def main():
 	agent = FPLAgent()
 	game = Game('fixtures2012-13', '26_3_2013', agent, moneyAvailable=STARTING_MONEY)
+
+	game.playGameweek(1)
+	print self.score
+	print self.currentTeam
 
 if __name__ == '__main__':
 	main()

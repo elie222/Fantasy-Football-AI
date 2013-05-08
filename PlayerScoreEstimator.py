@@ -2,9 +2,10 @@ from bs4 import BeautifulSoup
 import json
 import glob
 
-# TODO change this
-TABLE_FILENAME = 'TEST_TABLE.html'
-TEST_PLAYER_FILENAME = 'TEST_PLAYER'
+from Table import Table
+from PLTeam import PLTeam
+from Player import Player
+from Fixtures import PastFixture, FutureFixture
 
 HOME_ADV = 1.14
 AWAY_DISADV = 0.86
@@ -22,32 +23,10 @@ BONUS_POINTS = 1
 SAVE_POINTS = 0.25
 GOAL_CONC_DEF_POINTS = -0.3
 
-teamNames = {}
-teamNames['Manchester United'] = 'Man Utd'
-teamNames['Manchester City'] = 'Man City'
-teamNames['Tottenham Hotspur'] = 'Tottenham'
-teamNames['Chelsea'] = 'Chelsea'
-teamNames['Everton'] = 'Everton'
-teamNames['Arsenal'] = 'Arsenal'
-teamNames['West Bromwich Albion'] = 'West Brom'
-teamNames['Liverpool'] = 'Liverpool'
-teamNames['Swansea City'] = 'Swansea'
-teamNames['Stoke City'] = 'Stoke City'
-teamNames['West Ham United'] = 'West Ham'
-teamNames['Norwich City'] = 'Norwich'
-teamNames['Fulham'] = 'Fulham'
-teamNames['Sunderland'] = 'Sunderland'
-teamNames['Newcastle United'] = 'Newcastle'
-teamNames['Aston Villa'] = 'Aston Villa'
-teamNames['Southampton'] = 'Southampton'
-teamNames['Wigan Athletic'] = 'Wigan'
-teamNames['Reading'] = 'Reading'
-teamNames['Queens Park Rangers'] = 'QPR'
-
 
 class PlayerScoreEstimator:
-    def __init__(self, tableFilename):
-        self.createTable(tableFilename)
+    def __init__(self, table):
+        self.table = table
 
     def estimateScore(self,player,fixture):
         if fixture['opponent'] is None:
@@ -75,6 +54,9 @@ class PlayerScoreEstimator:
         return self.calcMiscPPG(player)+(locAdv*((self.calcDefPPG(player)/oppAttStrength)+(self.calcAttPPG(player)*oppDefStrength)))
 
     def estimateScoreMultipleGames(self,player,fixtureList,discount=1):
+        '''
+        TODO: implement discount (apply to gameweeks, not to fixtures)
+        '''
         estScore = 0
 
         futureFixture = None
@@ -166,196 +148,36 @@ class PlayerScoreEstimator:
         else:
             return float(points)/gamesPlayed
 
-    def createTable(self, filename):
-        html = open(filename, 'r')
-        soup = BeautifulSoup(html)
-        html.close()
 
-        self.table = Table(0)#TODO
 
-        teams = soup.find_all("td", class_="club-names")
-        for team in teams:
-            teamData = []
-            teamData.append(team.get_text())
-            nextRow = team.find_next_sibling()
-            while (nextRow is not None):
-                teamData.append(nextRow.get_text())
-                nextRow = nextRow.find_next_sibling()
-
-            self.table.addTeam(Team(teamData))
-
-        self.table.initAverages()
-
-class Table:
-    def __init__(self, gameweek):
-        self.gameweek = gameweek
-        self.data = {}
-
-    def initAverages(self):
-        self.avgHomeGF = self.calcAverage('homeGF')
-        self.avgHomeGA = self.calcAverage('homeGA')
-        self.avgAwayGF = self.calcAverage('awayGF')
-        self.avgAwayGA = self.calcAverage('awayGA')
-
-    def calcAverage(self, avgType):
-        goals = 0
-        for team in self.data:
-            goals += self[team][avgType]
-        return goals/len(self.data)
-
-    def addTeam(self, team):
-        self[team.teamName] = team
-
-    def __getitem__(self,key):
-        return self.data[key]
-
-    def __setitem__(self,key,item):
-        self.data[key] = item
-
-class Team:
-    def __init__(self, teamData):
-        self.teamName = teamNames[teamData[0]]
-        self.data = {}
-
-        self.data['homePlayed'] = int(teamData[1])
-        self.data['homeWon'] = int(teamData[2])
-        self.data['homeDrawn'] = int(teamData[3])
-        self.data['homeLost'] = int(teamData[4])
-        self.data['homeGF'] = int(teamData[5])
-        self.data['homeGA'] = int(teamData[6])
-        self.data['homeGD'] = int(teamData[7])
-        self.data['homePoints'] = int(teamData[8])
-
-        self.data['awayPlayed'] = int(teamData[9])
-        self.data['awayWon'] = int(teamData[10])
-        self.data['awayDrawn'] = int(teamData[11])
-        self.data['awayLost'] = int(teamData[12])
-        self.data['awayGF'] = int(teamData[13])
-        self.data['awayGA'] = int(teamData[14])
-        self.data['awayGD'] = int(teamData[15])
-        self.data['awayPoints'] = int(teamData[16])
-
-        self.data['overallGD'] = int(teamData[17])
-        self.data['overallPoints'] = int(teamData[18])
-
-    def __getitem__(self,key):
-        return self.data[key]
-
-    def __setitem__(self,key,item):
-        self.data[key] = item
-
-class Player:
-    def __init__(self, filename):
-        f = open(filename,'r')
-        self.data = json.loads(f.read())
-        f.close()
-
-    def __getitem__(self,key):
-        return self.data[key]
-
-    def __setitem__(self,key,item):
-        self.data[key] = item
-
-class PastFixture:
-    def __init__(self, array):
-        self.data = {}
-
-        self.data['date'] = array[0]
-        self.data['gameweek'] = array[1]
-        opp, loc, homeGoals, awayGoals = self.parseOppLocScore(array[2])
-        self.data['opponent'] = opp
-        self.data['location'] = loc
-        self.data['homeGoals'] = homeGoals
-        self.data['awayGoals'] = awayGoals
-        self.data['minsPlayed'] = array[3]
-        self.data['goalsScored'] = array[4]
-        self.data['assists'] = array[5]
-        self.data['cleanSheets'] = array[6]
-        self.data['goalsConceded'] = array[7]
-        self.data['ownGoals'] = array[8]
-        self.data['penaltiesSaved'] = array[9]
-        self.data['penaltiesMissed'] = array[10]
-        self.data['yellowCards'] = array[11]
-        self.data['redCards'] = array[12]
-        self.data['saves'] = array[13]
-        self.data['bonus'] = array[14]
-        self.data['EASportsPPI'] = array[15]
-        self.data['netTransfers'] = array[16]
-        self.data['value'] = array[17]
-        self.data['points'] = array[18]
-
-    def __getitem__(self,key):
-        return self.data[key]
-
-    def __setitem__(self,key,item):
-        self.data[key] = item
-
-    def parseOppLocScore(self, string):
-        opp = string[0:3]
-        loc = string[4]
-        goals = string.split(' ')[1].split('-')
-        homeGoals = goals[0]
-        awayGoals = goals[1]
-
-        return opp, loc, homeGoals, awayGoals
-
-class FutureFixture:
-    def __init__(self, array):
-        self.data = {}
-
-        self.data['date'] = array[0]
-        self.data['gameweek'] = self.parseGameweek(array[1])
-        opp, loc = self.parseOppLoc(array[2])
-        self.data['opponent'] = opp
-        self.data['location'] = loc
-
-    def __getitem__(self,key):
-        return self.data[key]
-
-    def __setitem__(self,key,item):
-        self.data[key] = item
-
-    def parseOppLoc(self, string):
-        '''
-        Example:
-        Input: 'West Brom (H)'
-        Output: ['West Brom', 'H']
-        '''
-        if string == '-':
-            return None, None
-
-        splitString = string.split(' (')
-        opp = splitString[0]
-        loc = splitString[1][0]
-
-        return opp, loc
-
-    def parseGameweek(self, string):
-        '''
-        Example:
-        Input: 'Gameweek 31'
-        Output: 31
-        '''
-        return int(string.split(' ')[1])
 
 def main():
+    # TODO change this
+    TABLE_FILENAME = 'TEST_TABLE.html'
+    TEST_PLAYER_FILENAME = 'TEST_PLAYER'
+
     folder = '26_3_2013'
     tableFilename = 'tableHomeAndAway.html'
     playerFilenames = glob.glob(folder + '/*')
     playerFilenames.remove(folder + '/' + tableFilename)
 
+    table = Table(folder+'/'+tableFilename)
+    estimator = PlayerScoreEstimator(table)
+
     playerScoreDict = {}
 
-    estimator = PlayerScoreEstimator(tableFilename=folder+'/'+tableFilename)
+    player = Player(playerFilenames[0])
+    score = estimator.estimateScoreMultipleGames(player,player['fixtures']['all'])
+    playerScoreDict[player['web_name']] = score
 
-    for playerFilename in playerFilenames:
-        try:
-            player = Player(playerFilename)
-            score = estimator.estimateScoreMultipleGames(player,player['fixtures']['all'])
-            playerScoreDict[player['web_name']] = score
-        except:
-            pass
-            # print 'ERROR FOR:', playerFilename
+    # for playerFilename in playerFilenames:
+    #     try:
+    #         player = Player(playerFilename)
+    #         score = estimator.estimateScoreMultipleGames(player,player['fixtures']['all'])
+    #         playerScoreDict[player['web_name']] = score
+    #     except:
+    #         pass
+    #         # print 'ERROR FOR:', playerFilename
 
     import operator
     sortedPlayerScoreList = sorted(playerScoreDict.iteritems(), key=operator.itemgetter(1))
