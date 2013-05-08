@@ -17,8 +17,8 @@ class Game:
 		self.fixturesFolder = fixturesFolder
 		self.playersFolder = playersFolder
 		
-		self.currentTable = Table() # TODO
-		self.currentAllPlayers = {} # TODO
+		self.currentTable = Table(fixturesFolder, 0)
+		self.currentAllPlayers = {} # TODO - maybe remove this line
 
 		self.agent = agent
 
@@ -35,6 +35,10 @@ class Game:
 		self.gameweek += 1
 		if self.freeTransfers < MAX_FREE_TRANSFERS_SAVED:
 			self.freeTransfers += 1
+
+		# TODO - update table
+
+		self.currentAllPlayers = self.getGameweekData(gameweekNo-1)
 
 		self.previousTeam = self.currentTeam
 		self.currentTeam = chooseTeam(self.currentAllPlayers, self.currentTable, self.previousTeam, self.moneyAvailable, self.freeTransfers, self.wildCards)
@@ -54,6 +58,7 @@ class Game:
 
 	def getGameweekData(self, gameweekNo):
 		'''
+		TODO - FIX
 		Returns a dict mapping player ids to PastFixture objects.
 		'''
 		gameweekData = {}
@@ -64,8 +69,8 @@ class Game:
 			try:
 	            player = Player(playerFilename)
 	            for fixture in player['fixture_history']['all']:
-	            	pastFixture = PastFixture(fixture)
-	            	gameweekData[player['id']] = pastFixture
+	            	pf = PastFixture(fixture)
+	            	gameweekData[player['id']] = pf
 			except:
 				pass
 
@@ -80,7 +85,7 @@ class Game:
 		'''
 		score = 0
 
-		gameweekData = getGameweekData(gameweekNo)
+		gameweekData = self.getGameweekData(gameweekNo)
 
 		nGks = 1
 		nDefs = team.formation[0]

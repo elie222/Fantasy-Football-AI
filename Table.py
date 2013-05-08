@@ -3,14 +3,22 @@ from PLTeam import PLTeam
 
 class Table(object):
     '''
-    Can be viewed as a dict mapping team names to 
+    Description 
     '''
-    def __init__(self, filename, gameweek=None):
+    def __init__(self, tableFilename=None, fixturesFolder = None, gameweek=None):
         self.gameweek = gameweek
         self.data = {}
-        self.createTable(filename)
 
-    def createTable(self, filename):
+        if tableFilename is not None:
+            self.createTableFromTableFile(tableFilename)
+        elif fixturesFolder is not None and gameweek is not None:
+            self.createTableFromFixtureFolder(fixturesFolder, gameweek)
+        else:
+            raise Exception('Invalid arguments to Table constructor.')
+
+        self.initAverages()
+
+    def createTableFromTableFile(self, filename):
         html = open(filename, 'r')
         soup = BeautifulSoup(html)
         html.close()
@@ -24,9 +32,21 @@ class Table(object):
                 teamData.append(nextRow.get_text())
                 nextRow = nextRow.find_next_sibling()
 
-            self[team.teamName] = PLTeam(teamData)
+            plTeam = PLTeam(teamData)
+            self[plTeam.teamName] = plTeam
 
-        self.initAverages()
+    def createTableFromFixtureFolder(self, fixturesFolder, gameweek):
+        #TODO - make sure everything works when gameweek = 0
+        for i in range(1, gameweek+1):
+            html = open(fixturesFolder + '/' + str(i))
+            soup = BeautifulSoup(html)
+            html.close()
+
+            #parse file
+
+            #update table
+
+        #save table data
 
     def initAverages(self):
         self.avgHomeGF = self.calcAverage('homeGF')
@@ -42,6 +62,10 @@ class Table(object):
 
     def addTeam(self, team):
         self[team.teamName] = team
+
+    def updateTableTillGW(self, gameweek):
+        # TODO - update 
+        pass
 
     def __getitem__(self,key):
         return self.data[key]

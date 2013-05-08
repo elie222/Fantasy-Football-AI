@@ -29,6 +29,7 @@ class PlayerScoreEstimator:
         self.table = table
 
     def estimateScore(self,player,fixture):
+
         if fixture['opponent'] is None:
             return 0
 
@@ -152,9 +153,6 @@ class PlayerScoreEstimator:
 
 
 def main():
-    # TODO change this
-    TABLE_FILENAME = 'TEST_TABLE.html'
-    TEST_PLAYER_FILENAME = 'TEST_PLAYER'
 
     folder = '26_3_2013'
     tableFilename = 'tableHomeAndAway.html'
