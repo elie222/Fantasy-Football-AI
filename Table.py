@@ -1,18 +1,18 @@
 from bs4 import BeautifulSoup
-from PLTeam import PLTeam
+import PLTeam
 
 class Table(object):
     '''
     Description 
     '''
-    def __init__(self, tableFilename=None, fixturesFolder = None, gameweek=None):
+    def __init__(self, tableFilename=None, fixturesFolder=None, gameweek=1):
         self.gameweek = gameweek
         self.data = {}
 
         if tableFilename is not None:
             self.createTableFromTableFile(tableFilename)
         elif fixturesFolder is not None and gameweek is not None:
-            self.createTableFromFixtureFolder(fixturesFolder, gameweek)
+            self.createTableFromFixtureFolder(gameweek)
         else:
             raise Exception('Invalid arguments to Table constructor.')
 
@@ -32,21 +32,72 @@ class Table(object):
                 teamData.append(nextRow.get_text())
                 nextRow = nextRow.find_next_sibling()
 
-            plTeam = PLTeam(teamData)
+            plTeam = PLTeam.PLTeam(teamData)
             self[plTeam.teamName] = plTeam
 
-    def createTableFromFixtureFolder(self, fixturesFolder, gameweek):
-        #TODO - make sure everything works when gameweek = 0
-        for i in range(1, gameweek+1):
-            html = open(fixturesFolder + '/' + str(i))
+    def createTableFromFixtureFolder(self, gameweek):
+        '''
+        This creates the table as it was at the start of the gameweek before any games had been played.
+        '''
+        for teamName in PLTeam.teamNames:
+            self[teamName] = PLTeam.PLTeam(teamName=teamName)
+
+        for i in range(1, gameweek):
+            html = open(self.fixturesFolder + '/' + str(i))
             soup = BeautifulSoup(html)
             html.close()
 
             #parse file
+            fixtures = soup.find_all("td", class_="ismFixture")
+            for fixture in fixtures:
+                homeTeam = fixtures.find("td", class_="ismHomeTeam")
+                awayTeam = fixtures.find("td", class_="ismAwayTeam")
 
-            #update table
+                score = fixtures.find("td", class_="ismScore")
+                splitScore = score.split(' - ')
+                homeScore = splitScore[0]
+                awayScore = splitScore[1]
+                
+                #update table
+                self.updateTeam(homeTeam, homeScore, awayScore, True)
+                self.updateTeam(awayTeam, awayScore, homeScore, False)
 
-        #save table data
+    def updateTeam(self, teamName, gf, ga, atHome):
+        '''
+        teamName - the name of the team to update
+        gf - no. of goals scored by the team in the match
+        ga - no. of goals let in by the team in the match
+        atHome - True if the team played at home. False if it played away
+        '''
+        if atHome:
+            self['homePlayed'] += 1
+            if gf > ga:
+                self['homeWon'] += 1
+                self['homePoints'] += 3
+            elif gf == ga:
+                self['homeDrawn'] += 1
+                self['homePoints'] += 1
+            else:
+                self['homeLost'] += 1
+            self['homeGF'] += gf
+            self['homeGA'] += ga
+            self['homeGD'] += (gf - ga)
+        else:
+            self['awayPlayed'] += 1
+            if gf > ga:
+                self['awayWon'] += 1
+                self['awayPoints'] += 3
+            elif gf == ga:
+                self['awayDrawn'] += 1
+                self['awayPoints'] += 1
+            else:
+                self['awayLost'] += 1
+            self['awayGF'] += gf
+            self['awayGA'] += ga
+            self['awayGD'] += (gf - ga)
+
+        self['overallGD'] += (gf - ga)
+        self['overallPoints'] = self['homePoints'] + self['awayPoints']
 
     def initAverages(self):
         self.avgHomeGF = self.calcAverage('homeGF')
@@ -64,7 +115,7 @@ class Table(object):
         self[team.teamName] = team
 
     def updateTableTillGW(self, gameweek):
-        # TODO - update 
+        # TODO
         pass
 
     def __getitem__(self,key):
