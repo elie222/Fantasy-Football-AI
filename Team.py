@@ -12,7 +12,11 @@ ATT_TYPE_NAME = 'Forward'
 class Team(object):
 	def __init__(self, playerList, formation=[3,4,3], captain=None, viceCaptain=None):
 		'''
-		Possibly don't throw exceptions when only half a team has been chosen. Let the agent deal with that itself.
+		playerList - a list of 15 Player objects.
+		formation - a list of 3 ints, representing the no. of defenders, midfielders and attackers respectively.
+		captain - the player to be captained. Must be a Player object contained in the playerList. Can be None.
+		viceCaptain - the player to be vice-captained. Must be a Player object contained in the playerList. Can be None.
+		If captain or viceCaptain are None, two strikers are chosen to be captain and Vice-captain.
 		'''
 		self.gks = []
 		self.defs = []
@@ -63,18 +67,27 @@ class Team(object):
 			self.value += player['now_cost']
 
 		# captain/vc
+		if captain is not in playerList or viceCaptain is not in playerList:
+			raise Exception('Captain or vicecaptain not in playerList.')
+
 		if captain is not None:
+			if captain is not in playerList:
+				raise Exception('Captain is not in playerList.')
 			self.captain = captain
 		else:
 			self.captain = self.atts[0]		
 
 		if viceCaptain is not None:
+			if captain is not in playerList:
+				raise Exception('Vice-captain is not in playerList.')
 			self.viceCaptain = viceCaptain
 		else:
 			self.viceCaptain = self.atts[1]
 
 	def transferPlayer(self, playerOut, playerIn):
 		'''
+		playerOut - Player object to remove the team.
+		playerIn - Player object to replace him with.
 		Raises an exception if playerOut is not in the team or if playerOut and playerIn
 		don't play in the same position.
 		'''
@@ -103,6 +116,9 @@ class Team(object):
 		self.value = playerOut['now_cost'] - playerIn['now_cost']
 
 	def isFormationValid(self, formation):
+		'''
+		Returns true if the formation is valid. Otherwise false.
+		'''
 		nDefs = formation[0]
 		nMids = formation[1]
 		nAtts = formation[2]
@@ -116,6 +132,9 @@ class Team(object):
 			return False
 
 	def getPlayerIdsList(self):
+		'''
+		Returns a list of the ids of the players in the team.
+		'''
 		idsList = []
 
 		for player in self.gks:
@@ -128,5 +147,3 @@ class Team(object):
 			idsList.append(player['id'])
 
 		return idsList
-
-

@@ -19,7 +19,7 @@ class Game:
         self.playersFolder = playersFolder
         
         self.currentTable = Table(fixturesFolder=fixturesFolder, gameweek=0)
-        self.currentAllPlayers = {} # TODO - maybe remove this line
+        self.currentAllPlayers = {}
 
         self.agent = agent
 
@@ -32,13 +32,16 @@ class Game:
         self.currentTeam = None
         self.previousTeam = None
 
-    def playGameweek(self,gameweekNo):
-        self.gameweek += 1
+    def playGameweek(self,gameweekNo=None):
+        if gameweekNo is not None:
+            self.gameweek = gameweekNo
+        else:
+            self.gameweek += 1
+
         if self.freeTransfers < MAX_FREE_TRANSFERS_SAVED:
             self.freeTransfers += 1
 
-        # TODO - update table
-
+        self.currentTable = Table(fixturesFolder=fixturesFolder, gameweek=self.gameweek)
         self.currentAllPlayers = self.getGameweekData(gameweekNo-1)
 
         self.previousTeam = self.currentTeam

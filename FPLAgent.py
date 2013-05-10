@@ -7,6 +7,14 @@ ATT_TYPE_NAME = 'Forward'
 
 class FPLAgent(object):
     def chooseTeam(self, allPlayers, currentTable, previousTeam, moneyAvailable, freeTransfers, wildCards):
+        '''
+        allPlayers - a list of Player objects to pick a team from.
+        currentTable - a Table object representing the current table
+        previousTeam - a Team object representing the team to be updated
+        moneyAvailable - amount of money available to spend
+        freeTransfers - no. of free transfers available
+        wildCards - no. of wildcards available
+        '''
 
         self.estimator = PlayerScoreEstimator(currentTable)
 
