@@ -74,3 +74,8 @@ class PLTeam(object):
 
     def __setitem__(self,key,item):
         self.data[key] = item
+
+    def __repr__(self):
+        return '%28s %12s %12s %12s\n'%(self['teamName'],self['homePlayed']+self['awayPlayed'],self['overallGD'],self['overallPoints'])
+
+

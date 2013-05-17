@@ -12,6 +12,7 @@ class Table(object):
         if tableFilename is not None:
             self.createTableFromTableFile(tableFilename)
         elif fixturesFolder is not None and gameweek is not None:
+            self.fixturesFolder = fixturesFolder
             self.createTableFromFixtureFolder(gameweek)
         else:
             raise Exception('Invalid arguments to Table constructor.')
@@ -24,6 +25,7 @@ class Table(object):
         html.close()
 
         teams = soup.find_all("td", class_="club-names")
+
         for team in teams:
             teamData = []
             teamData.append(team.get_text())
@@ -40,23 +42,24 @@ class Table(object):
         This creates the table as it was at the start of the gameweek before any games had been played.
         '''
         for teamName in PLTeam.teamNames:
-            self[teamName] = PLTeam.PLTeam(teamName=teamName)
+            self[PLTeam.teamNames[teamName]] = PLTeam.PLTeam(teamName=teamName)
 
         for i in range(1, gameweek):
-            html = open(self.fixturesFolder + '/' + str(i))
-            soup = BeautifulSoup(html)
-            html.close()
+            f = open(self.fixturesFolder + '/' + str(i))
+            soup = BeautifulSoup(f.read())
+            f.close()
 
             #parse file
-            fixtures = soup.find_all("td", class_="ismFixture")
-            for fixture in fixtures:
-                homeTeam = fixtures.find("td", class_="ismHomeTeam")
-                awayTeam = fixtures.find("td", class_="ismAwayTeam")
+            fixtures = soup.find_all("tr", class_="ismFixture")
 
-                score = fixtures.find("td", class_="ismScore")
+            for fixture in fixtures:
+                homeTeam = fixture.find("td", class_="ismHomeTeam").get_text()
+                awayTeam = fixture.find("td", class_="ismAwayTeam").get_text()
+
+                score = fixture.find("td", class_="ismScore").get_text()
                 splitScore = score.split(' - ')
-                homeScore = splitScore[0]
-                awayScore = splitScore[1]
+                homeScore = int(splitScore[0])
+                awayScore = int(splitScore[1])
                 
                 #update table
                 self.updateTeam(homeTeam, homeScore, awayScore, True)
@@ -70,34 +73,36 @@ class Table(object):
         atHome - True if the team played at home. False if it played away
         '''
         if atHome:
-            self['homePlayed'] += 1
+            self[teamName]['homePlayed'] += 1
             if gf > ga:
-                self['homeWon'] += 1
-                self['homePoints'] += 3
+                self[teamName]['homeWon'] += 1
+                self[teamName]['homePoints'] += 3
             elif gf == ga:
-                self['homeDrawn'] += 1
-                self['homePoints'] += 1
+                self[teamName]['homeDrawn'] += 1
+                self[teamName]['homePoints'] += 1
             else:
-                self['homeLost'] += 1
-            self['homeGF'] += gf
-            self['homeGA'] += ga
-            self['homeGD'] += (gf - ga)
+                self[teamName]['homeLost'] += 1
+            
+            self[teamName]['homeGF'] += gf
+            self[teamName]['homeGA'] += ga
+            self[teamName]['homeGD'] += (gf - ga)
         else:
-            self['awayPlayed'] += 1
+            self[teamName]['awayPlayed'] += 1
             if gf > ga:
-                self['awayWon'] += 1
-                self['awayPoints'] += 3
+                self[teamName]['awayWon'] += 1
+                self[teamName]['awayPoints'] += 3
             elif gf == ga:
-                self['awayDrawn'] += 1
-                self['awayPoints'] += 1
+                self[teamName]['awayDrawn'] += 1
+                self[teamName]['awayPoints'] += 1
             else:
-                self['awayLost'] += 1
-            self['awayGF'] += gf
-            self['awayGA'] += ga
-            self['awayGD'] += (gf - ga)
+                self[teamName]['awayLost'] += 1
 
-        self['overallGD'] += (gf - ga)
-        self['overallPoints'] = self['homePoints'] + self['awayPoints']
+            self[teamName]['awayGF'] += gf
+            self[teamName]['awayGA'] += ga
+            self[teamName]['awayGD'] += (gf - ga)
+
+        self[teamName]['overallGD'] += (gf - ga)
+        self[teamName]['overallPoints'] = self[teamName]['homePoints'] + self[teamName]['awayPoints']
 
     def initAverages(self):
         self.avgHomeGF = self.calcAverage('homeGF')
@@ -109,7 +114,7 @@ class Table(object):
         goals = 0
         for team in self.data:
             goals += self[team][avgType]
-        return goals/len(self.data)
+        return float(goals)/len(self.data)
 
     def addTeam(self, team):
         self[team.teamName] = team
@@ -123,3 +128,12 @@ class Table(object):
 
     def __setitem__(self,key,item):
         self.data[key] = item
+
+    def __repr__(self):
+        result = 'Table, Gameweek %d\n'%(self.gameweek)
+        result += '%28s %12s %12s %12s\n'%('Team','GP','GD','Points')
+        for key in self.data:
+            result += str(self[key])
+
+        return result
+

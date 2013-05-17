@@ -1,3 +1,4 @@
+import sys
 from PlayerScoreEstimator import PlayerScoreEstimator
 
 GK_TYPE_NAME = 'Goalkeeper'
@@ -8,22 +9,23 @@ ATT_TYPE_NAME = 'Forward'
 class FPLAgent(object):
     def chooseTeam(self, allPlayers, currentTable, previousTeam, moneyAvailable, freeTransfers, wildCards):
         '''
-        allPlayers - a list of Player objects to pick a team from.
+        allPlayers - a dict mapping player ids to Player objects to pick a team from.
         currentTable - a Table object representing the current table
         previousTeam - a Team object representing the team to be updated
         moneyAvailable - amount of money available to spend
         freeTransfers - no. of free transfers available
         wildCards - no. of wildcards available
         '''
-
-        self.estimator = PlayerScoreEstimator(currentTable)
+        estimator = PlayerScoreEstimator(currentTable)
 
         playerScoreDict = {} # a dict of dicts
 
-        for player in allPlayers:
+        for key in allPlayers:
+            # print 'KEY: %d'%key
             try:
-                player = Player(playerFilename)
+                player = allPlayers[key]
                 score = estimator.estimateScoreMultipleGames(player,player['fixtures']['all'])
+                # print 'SCORE: %d'%score
                 value = score/player['now_cost']
                 likelihoodOfPlaying = 1
 
@@ -33,11 +35,18 @@ class FPLAgent(object):
                 playerInfo['value'] = value
                 playerInfo['likelihoodOfPlaying'] = likelihoodOfPlaying
 
-                playerScoreDict[player['web_name']] = playerInfo
+                playerScoreDict[key] = playerInfo
             except:
-                pass
+                raise
 
-        playerScoreDict = sorted(playerScoreDict,key=itemgetter('value'), reverse=True) # not sure this will work
+        # BUG
+        # playerScoreDict = sorted(playerScoreDict,key=itemgetter('value'), reverse=True) # not sure this will work
+        sys.exit()
+        # for key in playerScoreDict:
+        #     print key, playerScoreDict[key]['score']
+        # sys.exit()
+        playerScoreDict = sorted(playerScoreDict, key=lambda pi: pi.value)
+        # print playerScoreDict
 
         if previousTeam is None:
             # pick completely new team

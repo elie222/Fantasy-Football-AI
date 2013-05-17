@@ -29,8 +29,18 @@ class PlayerScoreEstimator:
         self.table = table
 
     def estimateScore(self,player,fixture):
+        '''
+        Will just return 0 for all players in the first week since the table will be all zeros.
+        TODO: if a team has not yet scored or conceded, the oppStrength will be 0. Problem. Causes division by 0.
+        '''
+        print player, fixture
 
         if fixture['opponent'] is None:
+            print 'returning 0. no opp'
+            return 0
+
+        if self.table.avgAwayGF == 0 or self.table.avgAwayGA == 0 or self.table.avgHomeGF == 0 or self.table.avgHomeGA == 0:
+            print 'returning 0. new table'
             return 0
 
         opponentName = fixture['opponent']
@@ -40,7 +50,6 @@ class PlayerScoreEstimator:
         oppAttStrength = 0
         oppDefStrength = 0
         locAdv = 0
-
         if location == 'H':
             oppAttStrength = float(opponentTeam['awayGF'])/self.table.avgAwayGF
             oppDefStrength = float(opponentTeam['awayGA'])/self.table.avgAwayGA
@@ -50,7 +59,10 @@ class PlayerScoreEstimator:
             oppDefStrength = float(opponentTeam['homeGA'])/self.table.avgHomeGA
             locAdv = AWAY_DISADV
         else:
+            print 'location must be H or A.'
             raise
+
+        print 'here'
 
         return self.calcMiscPPG(player)+(locAdv*((self.calcDefPPG(player)/oppAttStrength)+(self.calcAttPPG(player)*oppDefStrength)))
 
@@ -60,10 +72,18 @@ class PlayerScoreEstimator:
         '''
         estScore = 0
 
+        print fixtureList
+
         futureFixture = None
         for fixture in fixtureList:
+            print fixture
             futureFixture = FutureFixture(fixture)
             estScore += self.estimateScore(player, futureFixture)
+            print 'EST_SCORE: %d'%estScore
+
+        print estScore
+        import sys
+        sys.exit()
 
         return estScore
 
@@ -82,8 +102,7 @@ class PlayerScoreEstimator:
             csPoints = CS_MID_POINTS
 
         fixture = None
-        for fixtureArray in player['fixture_history']['all']:
-            fixture = PastFixture(fixtureArray)
+        for fixture in player['fixture_history']['all']:
             if fixture['minsPlayed'] == 0:
                 continue
             gamesPlayed += 1
@@ -113,8 +132,7 @@ class PlayerScoreEstimator:
             bonusPoints = BONUS_POINTS
 
         fixture = None
-        for fixtureArray in player['fixture_history']['all']:
-            fixture = PastFixture(fixtureArray)
+        for fixture in player['fixture_history']['all']:
             if fixture['minsPlayed'] == 0:
                 continue
             gamesPlayed += 1
@@ -132,8 +150,10 @@ class PlayerScoreEstimator:
         points = 0
 
         fixture = None
-        for fixtureArray in player['fixture_history']['all']:
-            fixture = PastFixture(fixtureArray)
+
+        print player['fixture_history']['all']
+
+        for fixture in player['fixture_history']['all']:
             if fixture['minsPlayed'] == 0:
                 continue
             gamesPlayed += 1
