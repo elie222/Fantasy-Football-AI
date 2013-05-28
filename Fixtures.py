@@ -1,3 +1,5 @@
+from bs4 import BeautifulSoup
+
 class PastFixture(object):
     def __init__(self, array):
         self.data = {}
@@ -44,17 +46,22 @@ class PastFixture(object):
         return opp, loc, homeGoals, awayGoals
 
     def __repr__(self):
-        return 'PastFixture. Gameweek: %s. Opp: %s. Loc: %s'%(self['gameweek'], self['opponent'], self['location'])
+        return '<PastFixture. Gameweek: %s. Opp: %s. Loc: %s>'%(self['gameweek'], self['opponent'], self['location'])
 
 class FutureFixture(object):
-    def __init__(self, array):
+    def __init__(self, array=None):
+        '''
+        opponent is a team name.
+        location is 'H' or 'A'.
+        '''
         self.data = {}
 
-        self['date'] = array[0]
-        self['gameweek'] = self.parseGameweek(array[1])
-        opp, loc = self.parseOppLoc(array[2])
-        self['opponent'] = opp
-        self['location'] = loc
+        if array is not None:
+            self['date'] = array[0]
+            self['gameweek'] = self.parseGameweek(array[1])
+            opp, loc = self.parseOppLoc(array[2])
+            self['opponent'] = opp
+            self['location'] = loc
 
     def __getitem__(self,key):
         return self.data[key]
@@ -86,4 +93,50 @@ class FutureFixture(object):
         return int(string.split(' ')[1])
 
     def __repr__(self):
-        return 'FutureFixture. Gameweek: %s. Opp: %s. Loc: %s'%(self['gameweek'], self['opponent'], self['location'])
+        return '<FutureFixture. Gameweek: %s. Opp: %s. Loc: %s>'%(self['gameweek'], self['opponent'], self['location'])
+
+class Fixture(object):
+    def __init__(self, homeTeam, awayTeam, gameweek=None, date=None, score=None):
+        self.data = {}
+
+        self['homeTeam'] = homeTeam
+        self['awayTeam'] = awayTeam
+        self['gameweek'] = gameweek
+        self['date'] = date
+        self['score'] = score
+
+    def __getitem__(self,key):
+        return self.data[key]
+
+    def __setitem__(self,key,item):
+        self.data[key] = item
+
+def parseFixturesFile(filename, gameweek=None):
+    '''
+    Returns a list of Fixture objects for all the matches being played in the gameweek.
+    '''
+    # if gameweek is None:
+    #     gameweek == int(filename)
+
+    fixturesList = []
+
+    f = open(filename)
+    soup = BeautifulSoup(f.read())
+    f.close()
+
+    #parse file
+    fixtures = soup.find_all("tr", class_="ismFixture")
+
+    for fixture in fixtures:
+        homeTeam = fixture.find("td", class_="ismHomeTeam").get_text()
+        awayTeam = fixture.find("td", class_="ismAwayTeam").get_text()
+
+        # score = fixture.find("td", class_="ismScore").get_text()
+        # splitScore = score.split(' - ')
+        # homeScore = int(splitScore[0])
+        # awayScore = int(splitScore[1])
+
+        fixtureObj = Fixture(homeTeam, awayTeam)
+        fixturesList.append(fixtureObj)
+
+    return fixturesList

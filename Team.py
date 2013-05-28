@@ -67,18 +67,15 @@ class Team(object):
 			self.value += player['now_cost']
 
 		# captain/vc
-		if captain is not in playerList or viceCaptain is not in playerList:
-			raise Exception('Captain or vicecaptain not in playerList.')
-
 		if captain is not None:
-			if captain is not in playerList:
+			if captain not in playerList:
 				raise Exception('Captain is not in playerList.')
 			self.captain = captain
 		else:
 			self.captain = self.atts[0]		
 
 		if viceCaptain is not None:
-			if captain is not in playerList:
+			if captain not in playerList:
 				raise Exception('Vice-captain is not in playerList.')
 			self.viceCaptain = viceCaptain
 		else:
@@ -147,3 +144,19 @@ class Team(object):
 			idsList.append(player['id'])
 
 		return idsList
+
+	def __str__(self):
+		res = ''
+		for gk in self.gks:
+			res += (str(gk) + '\n')
+		for df in self.defs:
+			res += (str(df) + '\n')
+		for mid in self.mids:
+			res += (str(mid) + '\n')
+		for att in self.atts:
+			res += (str(att) + '\n')
+
+		return res
+
+
+

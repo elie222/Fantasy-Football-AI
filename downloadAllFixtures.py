@@ -2,7 +2,7 @@ import sys
 import os
 import urllib
 
-DIRECTORY_NAME = 'fixtures'
+DIRECTORY_NAME = 'fixtures2012-13_final'
 NO_OF_GAMEWEEKS = 38
 
 def main():

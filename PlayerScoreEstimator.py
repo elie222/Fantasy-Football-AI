@@ -33,8 +33,6 @@ class PlayerScoreEstimator:
         Will just return 0 for all players in the first week since the table will be all zeros.
         TODO: if a team has not yet scored or conceded, the oppStrength will be 0. Problem. Causes division by 0.
         '''
-        print player, fixture
-
         if fixture['opponent'] is None:
             print 'returning 0. no opp'
             return 0
@@ -62,9 +60,20 @@ class PlayerScoreEstimator:
             print 'location must be H or A.'
             raise
 
-        print 'here'
+        miscPoints = self.calcMiscPPG(player)
+        defPoints = 0
+        if oppAttStrength == 0:
+            # to avoid division by zero
+            defPoints = locAdv*self.calcDefPPG(player)/0.7
+        else:
+            defPoints = locAdv*self.calcDefPPG(player)/oppAttStrength
+        if oppDefStrength == 0:
+            # to avoid multiplying by zero
+            attPoints = self.calcAttPPG(player)*0.7
+        else:
+            attPoints = self.calcAttPPG(player)*oppDefStrength
 
-        return self.calcMiscPPG(player)+(locAdv*((self.calcDefPPG(player)/oppAttStrength)+(self.calcAttPPG(player)*oppDefStrength)))
+        return miscPoints + defPoints + attPoints
 
     def estimateScoreMultipleGames(self,player,fixtureList,discount=1):
         '''
@@ -72,18 +81,12 @@ class PlayerScoreEstimator:
         '''
         estScore = 0
 
-        print fixtureList
-
         futureFixture = None
-        for fixture in fixtureList:
-            print fixture
-            futureFixture = FutureFixture(fixture)
-            estScore += self.estimateScore(player, futureFixture)
-            print 'EST_SCORE: %d'%estScore
+        for GWFixtureList in fixtureList:
+            for fixture in GWFixtureList:
+                estScore += self.estimateScore(player, fixture)
 
-        print estScore
-        import sys
-        sys.exit()
+        # print player, estScore
 
         return estScore
 
@@ -151,7 +154,7 @@ class PlayerScoreEstimator:
 
         fixture = None
 
-        print player['fixture_history']['all']
+        # print player['fixture_history']['all']
 
         for fixture in player['fixture_history']['all']:
             if fixture['minsPlayed'] == 0:

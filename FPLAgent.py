@@ -1,5 +1,6 @@
-import sys
+# import sys
 from PlayerScoreEstimator import PlayerScoreEstimator
+from Team import Team
 
 GK_TYPE_NAME = 'Goalkeeper'
 DEF_TYPE_NAME = 'Defender'
@@ -18,14 +19,12 @@ class FPLAgent(object):
         '''
         estimator = PlayerScoreEstimator(currentTable)
 
-        playerScoreDict = {} # a dict of dicts
+        playersInfoList = [] # a list of dicts
 
         for key in allPlayers:
-            # print 'KEY: %d'%key
             try:
                 player = allPlayers[key]
                 score = estimator.estimateScoreMultipleGames(player,player['fixtures']['all'])
-                # print 'SCORE: %d'%score
                 value = score/player['now_cost']
                 likelihoodOfPlaying = 1
 
@@ -35,18 +34,11 @@ class FPLAgent(object):
                 playerInfo['value'] = value
                 playerInfo['likelihoodOfPlaying'] = likelihoodOfPlaying
 
-                playerScoreDict[key] = playerInfo
+                playersInfoList.append(playerInfo)
             except:
                 raise
 
-        # BUG
-        # playerScoreDict = sorted(playerScoreDict,key=itemgetter('value'), reverse=True) # not sure this will work
-        sys.exit()
-        # for key in playerScoreDict:
-        #     print key, playerScoreDict[key]['score']
-        # sys.exit()
-        playerScoreDict = sorted(playerScoreDict, key=lambda pi: pi.value)
-        # print playerScoreDict
+        playersInfoList = sorted(playersInfoList, key=lambda piDict: piDict['value'], reverse=True)
 
         if previousTeam is None:
             # pick completely new team
@@ -56,10 +48,10 @@ class FPLAgent(object):
             attCount = 0
             
             teamList = []
-            teamList = addPlayers(teamList, playerScoreDict, 2, GK_TYPE_NAME)
-            teamList = addPlayers(teamList, playerScoreDict, 5, DEF_TYPE_NAME)
-            teamList = addPlayers(teamList, playerScoreDict, 5, MID_TYPE_NAME)
-            teamList = addPlayers(teamList, playerScoreDict, 3, ATT_TYPE_NAME)
+            teamList = self.addPlayers(teamList, playersInfoList, 2, GK_TYPE_NAME)
+            teamList = self.addPlayers(teamList, playersInfoList, 5, DEF_TYPE_NAME)
+            teamList = self.addPlayers(teamList, playersInfoList, 5, MID_TYPE_NAME)
+            teamList = self.addPlayers(teamList, playersInfoList, 3, ATT_TYPE_NAME)
 
             team = Team(teamList, formation=[3,4,3], captain=None, viceCaptain=None)
             # self.team.captain = playerScoreDict[0]['player']
@@ -71,14 +63,20 @@ class FPLAgent(object):
             # TODO
             pass
 
-    def addPlayers(self, teamList, psDict, noOfPlayers, position):
+    def addPlayers(self, teamList, playersInfoList, noOfPlayers, position):
+        '''
+        This function assumes that playersInfoList is sorted in the correct order.
+        It will add the top noOfPlayers from the given position to the current team and return the new team.
+        '''
         count = 0
-        for ps in psDict:
-            if ps['player']['type_name'] == position:
-                teamList.append(ps)
+
+        for playerInfo in playersInfoList:
+            if playerInfo['player']['type_name'] == position:
+                teamList.append(playerInfo['player'])
                 count += 1
                 if count == noOfPlayers:
                     break
+
         return teamList
 
 def main():

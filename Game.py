@@ -4,18 +4,23 @@ This class enables simulating a season of FPL.
 Doesn't deal well with players that switched premier league teams in the middle of the year.
 Doesn't deal with injuries.
 '''
-
-from bs4 import BeautifulSoup
+import sys
 import glob
+import cPickle as pickle
+import os
+from bs4 import BeautifulSoup
+
 from FPLAgent import FPLAgent
 from PlayerScoreEstimator import PlayerScoreEstimator
 from Table import Table
 from Player import Player
 from Fixtures import *
+import PLTeam
 
 POINTS_COST_PER_TRANSFER = 4
 MAX_FREE_TRANSFERS_SAVED = 2
 STARTING_MONEY = 100
+NO_OF_GAMEWEEKS = 38
 
 class Game:
     def __init__(self, fixturesFolder, playersFolder, agent, moneyAvailable=STARTING_MONEY):
@@ -24,6 +29,24 @@ class Game:
         '''
         self.fixturesFolder = fixturesFolder
         self.playersFolder = playersFolder
+
+        # saving all the fixtures as FutureFixtures for all teams in the entire season
+        # this may take a while. using pickling to speed things up.
+        pickleFilename = 'allFutureFixtures_%s.pkl'%(fixturesFolder)
+        if os.path.exists(pickleFilename):
+            # print 'pickled file exists'
+            pkl_file = open(pickleFilename, 'rb')
+            self.allFixtures = pickle.load(pkl_file)
+            pkl_file.close()
+        else:
+            # print 'no pickled file exists'
+            self.allFixtures = {}
+            for teamName in PLTeam.teamNames.values():
+                self.allFixtures[teamName] = self.getAllFutureFixtures(teamName)
+
+            output = open(pickleFilename, 'wb')
+            pickle.dump(self.allFixtures, output)
+            output.close()
         
         # self.currentTable = Table(fixturesFolder=fixturesFolder, gameweek=0)
         self.allPlayersEnd = {} # this is all the player data in the playersFolder in dict format
@@ -70,10 +93,17 @@ class Game:
         self.previousTeam = self.currentTeam
         self.currentTeam = self.agent.chooseTeam(players, table, self.previousTeam, self.moneyAvailable, self.freeTransfers, self.wildCards)
 
-        self.moneyAvailable += (self.previousTeam.value - self.currentTeam.value)
+        if self.previousTeam is None:
+            #  no previous team
+            self.moneyAvailable -= self.currentTeam.value
+        else:
+            self.moneyAvailable += (self.previousTeam.value - self.currentTeam.value)
+
+        # BUG HERE
         if self.moneyAvailable < 0:
             raise Exception('Money available has dropped below 0.')
 
+        # BUG HERE
         noOfTransfers = self.findNoOfTransfers()
         if noOfTransfers < self.freeTransfers:
             self.freeTransfers -= noOfTransfers
@@ -81,7 +111,7 @@ class Game:
             self.freeTransfers = 0
             score -= (POINTS_COST_PER_TRANSFER*(noOfTransfers-self.freeTransfers))
 
-        score += self.getGameweekScore(gameweekNo, self.currentTeam)
+        self.score += self.getGameweekScore(gameweekNo, self.currentTeam)
 
     def getDataBeforeGameweek(self, gameweekNo):
         '''
@@ -89,7 +119,6 @@ class Game:
         Players that switched teams are a problem.
         TODO - make sure players that joined the pl in the middle of the year are not available
                to be chosen at the beginning of the year.
-        TODO - futureFixtures for each player also have to be updated.
         '''
         gameweekData = {}
 
@@ -99,13 +128,19 @@ class Game:
             currentValue = player['original_cost']
             pastFixtures = []
             for fixture in player['fixture_history']['all']:
-                if fixture['gameweek'] <= gameweekNo:
+                if fixture['gameweek'] < gameweekNo:
                     pastFixtures.append(fixture)
                     if fixture['gameweek'] > lastGameweekPlayed:
                         lastGameweekPlayed = fixture['gameweek']
                         currentValue = fixture['value']
 
+            futureFixtures = []
+            for fixtureGW in self.allFixtures[player['team_name']]:
+                if int(fixtureGW) >= gameweekNo:
+                    futureFixtures.append(self.allFixtures[player['team_name']][fixtureGW])
+
             player['fixture_history']['all'] = pastFixtures
+            player['fixtures']['all'] = futureFixtures
             player['now_cost'] = currentValue
 
             # this data is incorrect for the player at this time, so setting it all to None
@@ -150,7 +185,7 @@ class Game:
         for player in players:
             if noAdded == noToPlay:
                 break
-            playerScore, played = self.getPlayerScoreAndPlayed(playerId, gameweekNo)
+            playerScore, played = self.getPlayerScoreAndPlayed(player['id'], gameweekNo)
             if played:
                 score += playerScore
                 noAdded += 1
@@ -182,13 +217,47 @@ class Game:
 
         return noOfTransfers
 
+    def getAllFutureFixtures(self, teamName):
+        '''
+        Returns a dictionary mapping gameweeks to lists of fixtures for a team.
+        This is all fixtures for the entire season for the team.
+        A list could be empty, contain 1 fixture or 2 fixtures.
+        The fixtures are FutureFixture objects.
+        '''
+        futureFixturesDict = {}
+
+        for i in range(1,NO_OF_GAMEWEEKS+1):
+            filename = '%s/%d'%(self.fixturesFolder, i)
+            gwFixtures = parseFixturesFile(filename)
+
+            futureFixtureList = []
+
+            for gwFix in gwFixtures:
+                if gwFix['homeTeam'] == teamName:
+                    ff = FutureFixture()
+                    ff['gameweek'] = i
+                    ff['opponent'] = gwFix['awayTeam']
+                    ff['location'] = 'H'
+                    futureFixtureList.append(ff)
+                elif gwFix['awayTeam'] == teamName:
+                    ff = FutureFixture()
+                    ff['gameweek'] = i
+                    ff['opponent'] = gwFix['homeTeam']
+                    ff['location'] = 'A'
+                    futureFixtureList.append(ff)
+
+            futureFixturesDict[str(i)] = futureFixtureList
+
+        return futureFixturesDict
+
 def main():
     agent = FPLAgent()
-    game = Game(fixturesFolder='fixtures2012-13', playersFolder='26_3_2013', agent=agent, moneyAvailable=STARTING_MONEY)
+    game = Game(fixturesFolder='fixtures2012-13_final', playersFolder='20_5_2013', agent=agent, moneyAvailable=STARTING_MONEY)
 
-    game.playGameweek(2)
-    # print self.score
-    # print self.currentTeam
+    game.playGameweek(10)
+    # printing score = 0 every time. BUG
+    print game.score
+    print game.currentTeam
 
 if __name__ == '__main__':
     main()
