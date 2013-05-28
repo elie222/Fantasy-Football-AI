@@ -23,6 +23,8 @@ BONUS_POINTS = 1
 SAVE_POINTS = 0.25
 GOAL_CONC_DEF_POINTS = -0.3
 
+TOTAL_NO_OF_GAMES = 38
+
 
 class PlayerScoreEstimator:
     def __init__(self, table):
@@ -34,12 +36,12 @@ class PlayerScoreEstimator:
         TODO: if a team has not yet scored or conceded, the oppStrength will be 0. Problem. Causes division by 0.
         '''
         if fixture['opponent'] is None:
-            print 'returning 0. no opp'
+            # print 'returning 0. no opp'
             return 0
 
-        if self.table.avgAwayGF == 0 or self.table.avgAwayGA == 0 or self.table.avgHomeGF == 0 or self.table.avgHomeGA == 0:
-            print 'returning 0. new table'
-            return 0
+        # for the first 4 weeks we're only basing our estimate off of last season's stats
+        if len(player['fixture_history']['all']) < 4:
+            return self.estimateScoreFirstGW(player, fixture)
 
         opponentName = fixture['opponent']
         location = fixture['location']
@@ -75,18 +77,29 @@ class PlayerScoreEstimator:
 
         return miscPoints + defPoints + attPoints
 
-    def estimateScoreMultipleGames(self,player,fixtureList,discount=1):
-        '''
-        TODO: implement discount (apply to gameweeks, not to fixtures)
-        '''
+    def estimateScoreFirstGW(self, player, fixture):
+        if len(player['season_history']) == 0:
+            # new to the PL. not going to risk picking this player basically.
+            return 0
+
+        lastSeason = player['season_history'][-1]
+        minsPlayed = lastSeason[1]
+        points = lastSeason[-1]
+        gamesPlayed = minsPlayed/90 # not exact, but whatever
+
+        # not taking a risk in picking players that didn't play a lot last year.
+        # possibly increase this no. - but then players like Cisse or Jelavic that joined in Jan might be knocked out the list, which we might not want to do.
+        if gamesPlayed < 10:
+            return 0
+
+        return float(points)/gamesPlayed
+
+    def estimateScoreMultipleGames(self,player,fixtureList,currentGW,discount=1):
         estScore = 0
 
-        futureFixture = None
         for GWFixtureList in fixtureList:
             for fixture in GWFixtureList:
-                estScore += self.estimateScore(player, fixture)
-
-        # print player, estScore
+                estScore += (discount**(fixture['gameweek']-currentGW))*self.estimateScore(player, fixture)
 
         return estScore
 

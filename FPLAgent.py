@@ -8,7 +8,7 @@ MID_TYPE_NAME = 'Midfielder'
 ATT_TYPE_NAME = 'Forward'
 
 class FPLAgent(object):
-    def chooseTeam(self, allPlayers, currentTable, previousTeam, moneyAvailable, freeTransfers, wildCards):
+    def chooseTeam(self, allPlayers, currentTable, previousTeam, moneyAvailable, freeTransfers, wildCards, gameweek):
         '''
         allPlayers - a dict mapping player ids to Player objects to pick a team from.
         currentTable - a Table object representing the current table
@@ -16,6 +16,7 @@ class FPLAgent(object):
         moneyAvailable - amount of money available to spend
         freeTransfers - no. of free transfers available
         wildCards - no. of wildcards available
+        gameweek - current gameweek
         '''
         estimator = PlayerScoreEstimator(currentTable)
 
@@ -24,7 +25,7 @@ class FPLAgent(object):
         for key in allPlayers:
             try:
                 player = allPlayers[key]
-                score = estimator.estimateScoreMultipleGames(player,player['fixtures']['all'])
+                score = estimator.estimateScoreMultipleGames(player,player['fixtures']['all'],gameweek,discount=0.7)
                 value = score/player['now_cost']
                 likelihoodOfPlaying = 1
 

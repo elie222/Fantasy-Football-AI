@@ -7,7 +7,10 @@ class Player(object):
 		'''
 		if filename is not None:
 			f = open(filename,'r')
-			self.data = json.loads(f.read())
+			try:
+				self.data = json.loads(f.read())
+			except:
+				print 'ERROR creating player from file:', filename
 			f.close()
 		elif fixtures is not None:
 			self[fixtures] = fixtures
@@ -21,4 +24,4 @@ class Player(object):
 		self.data[key] = item
 
 	def __repr__(self):
-		return self['web_name']
+		return '<Player: ' + self['web_name'] + '>'

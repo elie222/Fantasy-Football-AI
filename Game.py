@@ -8,6 +8,7 @@ import sys
 import glob
 import cPickle as pickle
 import os
+import copy
 from bs4 import BeautifulSoup
 
 from FPLAgent import FPLAgent
@@ -19,7 +20,7 @@ import PLTeam
 
 POINTS_COST_PER_TRANSFER = 4
 MAX_FREE_TRANSFERS_SAVED = 2
-STARTING_MONEY = 100
+STARTING_MONEY = 1000
 NO_OF_GAMEWEEKS = 38
 
 class Game:
@@ -67,16 +68,13 @@ class Game:
         playerFilenames = glob.glob(self.playersFolder + '/*')
 
         for filename in playerFilenames:
-            try:
-                player = Player(filename=filename)
-                allFixtures = []
-                for fixture in player['fixture_history']['all']:
-                    pf = PastFixture(fixture)
-                    allFixtures.append(pf)
-                player['fixture_history']['all'] = allFixtures
-                self.allPlayersEnd[player['id']] = player
-            except:
-                pass
+            player = Player(filename=filename)
+            allFixtures = []
+            for fixture in player['fixture_history']['all']:
+                pf = PastFixture(fixture)
+                allFixtures.append(pf)
+            player['fixture_history']['all'] = allFixtures
+            self.allPlayersEnd[player['id']] = player
 
     def playGameweek(self,gameweekNo=None):
         if gameweekNo is not None:
@@ -91,7 +89,7 @@ class Game:
         players = self.getDataBeforeGameweek(gameweekNo)
 
         self.previousTeam = self.currentTeam
-        self.currentTeam = self.agent.chooseTeam(players, table, self.previousTeam, self.moneyAvailable, self.freeTransfers, self.wildCards)
+        self.currentTeam = self.agent.chooseTeam(players, table, self.previousTeam, self.moneyAvailable, self.freeTransfers, self.wildCards, gameweekNo)
 
         if self.previousTeam is None:
             #  no previous team
@@ -99,11 +97,10 @@ class Game:
         else:
             self.moneyAvailable += (self.previousTeam.value - self.currentTeam.value)
 
-        # BUG HERE
         if self.moneyAvailable < 0:
+            print self.moneyAvailable
             raise Exception('Money available has dropped below 0.')
 
-        # BUG HERE
         noOfTransfers = self.findNoOfTransfers()
         if noOfTransfers < self.freeTransfers:
             self.freeTransfers -= noOfTransfers
@@ -123,7 +120,7 @@ class Game:
         gameweekData = {}
 
         for key in self.allPlayersEnd:
-            player = self.allPlayersEnd[key]
+            player = copy.deepcopy(self.allPlayersEnd[key])
             lastGameweekPlayed = 0
             currentValue = player['original_cost']
             pastFixtures = []
@@ -190,6 +187,8 @@ class Game:
                 score += playerScore
                 noAdded += 1
 
+        # print score
+
         return score
 
     def getPlayerScoreAndPlayed(self, playerId, gameweekNo):
@@ -199,13 +198,16 @@ class Game:
         for fixture in self.allPlayersEnd[playerId]['fixture_history']['all']:
             if gameweekNo == fixture['gameweek']:
                 if fixture['minsPlayed'] == 0:
-                    0, False
+                    return 0, False
                 else:
                     return fixture['points'], True
         else:
             return 0, False
 
     def findNoOfTransfers(self):
+        if self.previousTeam is None:
+            return 0
+
         noOfTransfers = 0
 
         previousIdList = self.previousTeam.getPlayerIdsList()
@@ -254,10 +256,12 @@ def main():
     agent = FPLAgent()
     game = Game(fixturesFolder='fixtures2012-13_final', playersFolder='20_5_2013', agent=agent, moneyAvailable=STARTING_MONEY)
 
-    game.playGameweek(10)
-    # printing score = 0 every time. BUG
+    game.playGameweek(1)
     print game.score
     print game.currentTeam
+    # game.playGameweek(11)
+    # print game.score
+    # print game.currentTeam
 
 if __name__ == '__main__':
     main()
