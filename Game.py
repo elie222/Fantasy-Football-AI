@@ -259,6 +259,7 @@ def main():
     game.playGameweek(1)
     print game.score
     print game.currentTeam
+    print game.currentTeam.value
     # game.playGameweek(11)
     # print game.score
     # print game.currentTeam
