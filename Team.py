@@ -156,7 +156,7 @@ class Team(object):
 		for att in self.atts:
 			res += (str(att) + '\n')
 
-		return res
+		return res[:-1]
 
 
 

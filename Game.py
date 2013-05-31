@@ -11,7 +11,7 @@ import os
 import copy
 from bs4 import BeautifulSoup
 
-from FPLAgent import FPLAgent
+from FPLAgent import *
 from PlayerScoreEstimator import PlayerScoreEstimator
 from Table import Table
 from Player import Player
@@ -19,7 +19,14 @@ from Fixtures import *
 import PLTeam
 
 POINTS_COST_PER_TRANSFER = 4
-MAX_FREE_TRANSFERS_SAVED = 2
+
+# true values.
+# MAX_FREE_TRANSFERS_SAVED = 2
+# STARTING_FREE_TRANSFERS = 0
+# to allow unlimited free transfers. debug mode
+MAX_FREE_TRANSFERS_SAVED = 100
+STARTING_FREE_TRANSFERS = 10000
+
 STARTING_MONEY = 1000
 NO_OF_GAMEWEEKS = 38
 
@@ -56,8 +63,9 @@ class Game:
         self.agent = agent
 
         self.score = 0
+        self.gameweekScore = 0
         self.gameweek = 0
-        self.freeTransfers = 0
+        self.freeTransfers = STARTING_FREE_TRANSFERS
         self.wildCards = 2 # change this
         self.moneyAvailable = moneyAvailable
 
@@ -77,6 +85,8 @@ class Game:
             self.allPlayersEnd[player['id']] = player
 
     def playGameweek(self,gameweekNo=None):
+        self.gameweekScore = 0
+
         if gameweekNo is not None:
             self.gameweek = gameweekNo
         else:
@@ -106,9 +116,10 @@ class Game:
             self.freeTransfers -= noOfTransfers
         else:
             self.freeTransfers = 0
-            score -= (POINTS_COST_PER_TRANSFER*(noOfTransfers-self.freeTransfers))
+            self.gameweekScore -= (POINTS_COST_PER_TRANSFER*(noOfTransfers-self.freeTransfers))
 
-        self.score += self.getGameweekScore(gameweekNo, self.currentTeam)
+        self.gameweekScore += self.getGameweekScore(gameweekNo, self.currentTeam)
+        self.score += self.gameweekScore
 
     def getDataBeforeGameweek(self, gameweekNo):
         '''
@@ -211,7 +222,7 @@ class Game:
         noOfTransfers = 0
 
         previousIdList = self.previousTeam.getPlayerIdsList()
-        currentIdList = self.previousTeam.getPlayerIdsList()
+        currentIdList = self.currentTeam.getPlayerIdsList()
 
         for prevId in previousIdList:
             if prevId not in currentIdList:
@@ -253,16 +264,40 @@ class Game:
         return futureFixturesDict
 
 def main():
-    agent = FPLAgent()
+    print '===ValueAgent==='
+    agent = ValueAgent()
     game = Game(fixturesFolder='fixtures2012-13_final', playersFolder='20_5_2013', agent=agent, moneyAvailable=STARTING_MONEY)
 
-    game.playGameweek(1)
-    print game.score
-    print game.currentTeam
-    print game.currentTeam.value
-    # game.playGameweek(11)
-    # print game.score
-    # print game.currentTeam
+    for i in range(1,NO_OF_GAMEWEEKS+1):
+        print i
+        game.playGameweek(i)
+
+        print 'GAMEWEEK', i
+        print 'TOTAL SCORE:', game.score
+        print 'GAMEWEEK SCORE:', game.gameweekScore
+        # print 'NO OF TRANSFERS:', game.findNoOfTransfers()
+        print 'CURRENT TEAM:\n',game.currentTeam
+        print 'CURRENT VALUE:',game.currentTeam.value
+        print ''
+
+
+    # print '===RandomAgent10000==='
+    # agent = RandomAgent(10000)
+    # game = Game(fixturesFolder='fixtures2012-13_final', playersFolder='20_5_2013', agent=agent, moneyAvailable=STARTING_MONEY)
+
+    # for i in range(1,NO_OF_GAMEWEEKS+1):
+    #     print i
+    #     game.playGameweek(i)
+    #     if i == NO_OF_GAMEWEEKS:
+    #         print 'GAMEWEEK', i
+    #         print 'TOTAL SCORE:', game.score
+    #         print 'GAMEWEEK SCORE:', game.gameweekScore
+    #         # print 'NO OF TRANSFERS:', game.findNoOfTransfers()
+    #         print 'CURRENT TEAM:\n',game.currentTeam
+    #         print 'CURRENT VALUE:',game.currentTeam.value
+    #         print ''
+
+
 
 if __name__ == '__main__':
     main()
