@@ -19,6 +19,7 @@ class Table(object):
 
         self.initAverages()
 
+    # TODO - check that the next functions produce the same Table files
     def createTableFromTableFile(self, filename):
         html = open(filename, 'r')
         soup = BeautifulSoup(html)
@@ -34,8 +35,8 @@ class Table(object):
                 teamData.append(nextRow.get_text())
                 nextRow = nextRow.find_next_sibling()
 
-            plTeam = PLTeam.PLTeam(teamData)
-            self[plTeam.teamName] = plTeam
+            plTeam = PLTeam.PLTeam(teamData=teamData)
+            self[PLTeam.teamNames[plTeam.teamName]] = plTeam
 
     def createTableFromFixtureFolder(self, gameweek):
         '''

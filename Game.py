@@ -264,38 +264,38 @@ class Game:
         return futureFixturesDict
 
 def main():
-    print '===ValueAgent==='
-    agent = ValueAgent()
-    game = Game(fixturesFolder='fixtures2012-13_final', playersFolder='20_5_2013', agent=agent, moneyAvailable=STARTING_MONEY)
-
-    for i in range(1,NO_OF_GAMEWEEKS+1):
-        print i
-        game.playGameweek(i)
-
-        print 'GAMEWEEK', i
-        print 'TOTAL SCORE:', game.score
-        print 'GAMEWEEK SCORE:', game.gameweekScore
-        # print 'NO OF TRANSFERS:', game.findNoOfTransfers()
-        print 'CURRENT TEAM:\n',game.currentTeam
-        print 'CURRENT VALUE:',game.currentTeam.value
-        print ''
-
-
-    # print '===RandomAgent10000==='
-    # agent = RandomAgent(10000)
+    # print '===ValueAgent==='
+    # agent = ValueAgent(prevYearTableFilename='2012finalTable.html')
     # game = Game(fixturesFolder='fixtures2012-13_final', playersFolder='20_5_2013', agent=agent, moneyAvailable=STARTING_MONEY)
 
     # for i in range(1,NO_OF_GAMEWEEKS+1):
     #     print i
     #     game.playGameweek(i)
-    #     if i == NO_OF_GAMEWEEKS:
-    #         print 'GAMEWEEK', i
-    #         print 'TOTAL SCORE:', game.score
-    #         print 'GAMEWEEK SCORE:', game.gameweekScore
-    #         # print 'NO OF TRANSFERS:', game.findNoOfTransfers()
-    #         print 'CURRENT TEAM:\n',game.currentTeam
-    #         print 'CURRENT VALUE:',game.currentTeam.value
-    #         print ''
+
+    #     print 'GAMEWEEK', i
+    #     print 'TOTAL SCORE:', game.score
+    #     print 'GAMEWEEK SCORE:', game.gameweekScore
+    #     # print 'NO OF TRANSFERS:', game.findNoOfTransfers()
+    #     print 'CURRENT TEAM:\n',game.currentTeam
+    #     print 'CURRENT VALUE:',game.currentTeam.value
+    #     print ''
+
+
+    print '===RandomAgent10000==='
+    agent = RandomAgent(prevYearTableFilename='2012finalTable.html', iterations=10000)
+    game = Game(fixturesFolder='fixtures2012-13_final', playersFolder='20_5_2013', agent=agent, moneyAvailable=STARTING_MONEY)
+
+    for i in range(1,NO_OF_GAMEWEEKS+1):
+        print i
+        game.playGameweek(i)
+        if i == NO_OF_GAMEWEEKS:
+            print 'GAMEWEEK', i
+            print 'TOTAL SCORE:', game.score
+            print 'GAMEWEEK SCORE:', game.gameweekScore
+            # print 'NO OF TRANSFERS:', game.findNoOfTransfers()
+            print 'CURRENT TEAM:\n',game.currentTeam
+            print 'CURRENT VALUE:',game.currentTeam.value
+            print ''
 
 
 

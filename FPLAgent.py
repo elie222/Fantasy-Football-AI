@@ -12,6 +12,12 @@ class ValueAgent(object):
 	'''
 	This agent just picks the best value team. Not very smart, but is a basic team whose cost is always very low.
 	'''
+	def __init__(self, prevYearTableFilename):
+		'''
+		prevYearTable - filename of the previous year's final table. Helps to pick a team in the first few gameweeks.
+		'''
+		self.prevYearTable = Table(prevYearTableFilename)
+
 	def chooseTeam(self, allPlayers, currentTable, previousTeam, moneyAvailable, freeTransfers, wildCards, gameweek):
 		'''
 		allPlayers - a dict mapping player ids to Player objects to pick a team from.
@@ -93,13 +99,18 @@ class RandomAgent(object):
 	TODO - this isn't considering changing captain each week or thinking about the bench and switching players each week.
 	Should change it so it is.
 	'''
-	def __init__(self, noOfIterations, discount=1, weeksToLookAhead=6):
+	def __init__(self, prevYearTableFilename, noOfIterations, discount=1, weeksToLookAhead=6):
 		self.noOfIterations = noOfIterations
 		self.discount = discount
 		self.weeksToLookAhead = weeksToLookAhead
+		self.prevYearTable = Table(prevYearTableFilename)
 
 	def chooseTeam(self, allPlayers, currentTable, previousTeam, moneyAvailable, freeTransfers, wildCards, gameweek):
-		estimator = PlayerScoreEstimator(currentTable)
+		estimator = None
+		if gameweek < 5:
+			estimator = PlayerScoreEstimator(self.prevYearTable)
+		else:	
+			estimator = PlayerScoreEstimator(currentTable)
 
 		playersInfoList = [] # a list of dicts
 
