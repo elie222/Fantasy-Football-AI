@@ -2,6 +2,7 @@
 import random
 from PlayerScoreEstimator import PlayerScoreEstimator
 from Team import Team
+from Table import Table
 
 GK_TYPE_NAME = 'Goalkeeper'
 DEF_TYPE_NAME = 'Defender'

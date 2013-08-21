@@ -36,7 +36,7 @@ class Table(object):
                 nextRow = nextRow.find_next_sibling()
 
             plTeam = PLTeam.PLTeam(teamData=teamData)
-            self[PLTeam.teamNames[plTeam.teamName]] = plTeam
+            self[plTeam['teamName']] = plTeam
 
     def createTableFromFixtureFolder(self, gameweek):
         '''

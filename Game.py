@@ -9,6 +9,7 @@ import glob
 import cPickle as pickle
 import os
 import copy
+import argparse
 from bs4 import BeautifulSoup
 
 from FPLAgent import *
@@ -264,6 +265,37 @@ class Game:
         return futureFixturesDict
 
 def main():
+    parser = argparse.ArgumentParser()
+    # parser.add_argument('-i', '--input', help='name of input file', type=argparse.FileType('r'))
+    parser.add_argument('-a', '--agent', type=str, default='RandomAgent', 
+        help='The agent to run the simulator on')
+    parser.add_argument('-ri', '--rIterations', type=int, default=10000, 
+        help='The number of iterations to run for RandomAgent. Default is 10,000')
+    parser.add_argument('-pt', '--prevTable', type=str, default='2012finalTable.html', 
+        help='Previous year\'s table. Default is currently 2012finalTable.html')
+    parser.add_argument('-pf', '--playersFolder', type=str, default='20_5_2013', 
+        help='Folder containing all player data. Default is currently 20_5_2013')
+    parser.add_argument('-ff', '--fixturesFolder', type=str, default='fixtures2012-13_final', 
+        help='Folder containing all fixtures data and results (after season is complete). Default is currently fixtures2012-13_final')
+    args = parser.parse_args()
+
+    if args.agent == 'RandomAgent':
+        agent = RandomAgent(prevYearTableFilename=args.prevTable, noOfIterations=args.rIterations)
+        game = Game(fixturesFolder=args.fixturesFolder, playersFolder=args.playersFolder, agent=agent, moneyAvailable=STARTING_MONEY)
+
+        for i in range(1,NO_OF_GAMEWEEKS+1):
+            print i
+            game.playGameweek(i)
+            if i == NO_OF_GAMEWEEKS:
+                print 'GAMEWEEK', i
+                print 'TOTAL SCORE:', game.score
+                print 'GAMEWEEK SCORE:', game.gameweekScore
+                # print 'NO OF TRANSFERS:', game.findNoOfTransfers()
+                print 'CURRENT TEAM:\n',game.currentTeam
+                print 'CURRENT VALUE:',game.currentTeam.value
+                print ''
+
+
     # print '===ValueAgent==='
     # agent = ValueAgent(prevYearTableFilename='2012finalTable.html')
     # game = Game(fixturesFolder='fixtures2012-13_final', playersFolder='20_5_2013', agent=agent, moneyAvailable=STARTING_MONEY)
@@ -281,21 +313,6 @@ def main():
     #     print ''
 
 
-    print '===RandomAgent10000==='
-    agent = RandomAgent(prevYearTableFilename='2012finalTable.html', iterations=10000)
-    game = Game(fixturesFolder='fixtures2012-13_final', playersFolder='20_5_2013', agent=agent, moneyAvailable=STARTING_MONEY)
-
-    for i in range(1,NO_OF_GAMEWEEKS+1):
-        print i
-        game.playGameweek(i)
-        if i == NO_OF_GAMEWEEKS:
-            print 'GAMEWEEK', i
-            print 'TOTAL SCORE:', game.score
-            print 'GAMEWEEK SCORE:', game.gameweekScore
-            # print 'NO OF TRANSFERS:', game.findNoOfTransfers()
-            print 'CURRENT TEAM:\n',game.currentTeam
-            print 'CURRENT VALUE:',game.currentTeam.value
-            print ''
 
 
 
